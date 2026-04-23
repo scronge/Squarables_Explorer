@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Squarables Configuration Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --paper: #f6f0e1;
+      --ink: #102a43;
+      --muted: #486581;
+      --frame: #d9c7a4;
+      --panel: rgba(255, 251, 243, 0.92);
+      --card: #fffdf8;
+    }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #fff7e5, transparent 24%),
+        linear-gradient(180deg, #efe4cb 0%, var(--paper) 38%, #faf7ef 100%);
+    }
+    main {
+      max-width: 1660px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+    h1 { margin: 0 0 8px; font-size: 42px; }
+    .intro {
+      max-width: 1180px;
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0 0 20px;
+    }
+    .toolbar, .config-view {
+      background: var(--panel);
+      border: 1px solid var(--frame);
+      border-radius: 18px;
+      padding: 16px 18px;
+      box-shadow: 0 12px 28px rgba(16, 42, 67, 0.08);
+      margin-bottom: 22px;
+    }
+    .toolbar label {
+      display: inline-block;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    .toolbar select {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #ccb789;
+      background: #fffaf0;
+      font-family: inherit;
+      margin-right: 14px;
+    }
+    .summary {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+    .panel-card {
+      background: var(--card);
+      border: 1px solid #e3d7bf;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(16, 42, 67, 0.06);
+    }
+    .panel-card h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+    .panel-note {
+      margin: 0 0 10px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.96rem;
+    }
+    .panel-card svg {
+      display: block;
+      width: min(100%, 320px);
+      height: auto;
+      margin: 0 auto 10px;
+      background: #fffefb;
+      border-radius: 12px;
+    }
+    .comparison-tile,
+    .corner-point,
+    .corner-edge-segment,
+    .transversal-tile,
+    .transversal-edge-group {
+      transition: filter 120ms ease, stroke-width 120ms ease, opacity 120ms ease;
+      cursor: pointer;
+    }
+    .comparison-tile.is-active,
+    .transversal-tile.is-active {
+      stroke: #b91c1c;
+      stroke-width: 4;
+      filter: brightness(1.04);
+    }
+    .corner-edge-segment.is-active {
+      stroke: #b91c1c;
+      stroke-width: 4.2;
+    }
+    .corner-point.is-active {
+      stroke: #7f1d1d;
+      stroke-width: 2.8;
+      filter: brightness(1.08);
+    }
+    .transversal-edge-group.is-active .transversal-edge {
+      stroke: #b91c1c;
+      stroke-width: 4.2;
+    }
+    .transversal-edge-group.is-active .transversal-edge-label {
+      font-size: 18px;
+      font-weight: 700;
+      fill: #991b1b;
+    }
+    .transversal-edge-label {
+      paint-order: stroke;
+      stroke: rgba(255, 254, 251, 0.98);
+      stroke-width: 5px;
+      stroke-linejoin: round;
+    }
+    .config-view.hidden {
+      display: none;
+    }
+    .loading {
+      color: var(--muted);
+      font-style: italic;
+    }
+    
+    .page-strip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+      background: #fffdf8;
+      border: 1px solid #e3d7bf;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin: 12px 0 18px;
+    }
+    .page-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .page-strip .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      border: 1px solid #d2d7f3;
+      font-size: 13px;
+    }
+    .page-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .page-links a {
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid #d9c7a4;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #fff8ea;
+      font-size: 14px;
+    }
+    @media (max-width: 880px) {
+      .page-strip {
+        grid-template-columns: 1fr;
+      }
+      .page-links {
+        justify-content: flex-start;
+      }
+    }
+    
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Squarables Configuration Explorer</h1>
+    <p class="intro">
+      This page lets you look at one square dissection at a time through several visual lenses. Use the dropdowns to choose a number of squares and then a specific configuration; the page then shows the tiling itself, how its corners connect, how its horizontal and vertical sweep structures behave, and how its horizontal and vertical bands cut across the figure.
+    </p>
+    <section class="toolbar">
+      <label for="fiber-select">Number of squares</label>
+      <select id="fiber-select">
+        <option value='1'>n = 1</option><option value='4'>n = 4</option><option value='6'>n = 6</option><option value='7'>n = 7</option><option value='8'>n = 8</option><option value='9'>n = 9</option><option value='10'>n = 10</option><option value='11'>n = 11</option><option value='12'>n = 12</option>
+      </select>
+      <label for="config-select">Configuration</label>
+      <select id="config-select"></select>
+    </section>
+    <div id="config-container"><section class="toolbar"><p class="loading">Loading configuration views...</p></section></div>
+  </main>
+  <script>
+    const BY_FIBER = {"1":["n1-c1"],"4":["n4-c1"],"6":["n6-c1"],"7":["n7-c1","n7-c2"],"8":["n8-c1","n8-c2","n8-c3","n8-c4","n8-c5","n8-c6"],"9":["n9-c1","n9-c2","n9-c3","n9-c4","n9-c5","n9-c6","n9-c7","n9-c8","n9-c9","n9-c10","n9-c11","n9-c12","n9-c13","n9-c14","n9-c15","n9-c16"],"10":["n10-c1","n10-c2","n10-c3","n10-c4","n10-c5","n10-c6","n10-c7","n10-c8","n10-c9","n10-c10","n10-c11","n10-c12","n10-c13","n10-c14","n10-c15","n10-c16","n10-c17","n10-c18","n10-c19","n10-c20","n10-c21","n10-c22","n10-c23","n10-c24","n10-c25","n10-c26","n10-c27","n10-c28","n10-c29","n10-c30","n10-c31","n10-c32","n10-c33","n10-c34","n10-c35","n10-c36","n10-c37","n10-c38","n10-c39","n10-c40","n10-c41","n10-c42","n10-c43","n10-c44","n10-c45","n10-c46","n10-c47","n10-c48","n10-c49","n10-c50","n10-c51","n10-c52","n10-c53","n10-c54","n10-c55","n10-c56"],"11":["n11-c1","n11-c2","n11-c3","n11-c4","n11-c5","n11-c6","n11-c7","n11-c8","n11-c9","n11-c10","n11-c11","n11-c12","n11-c13","n11-c14","n11-c15","n11-c16","n11-c17","n11-c18","n11-c19","n11-c20","n11-c21","n11-c22","n11-c23","n11-c24","n11-c25","n11-c26","n11-c27","n11-c28","n11-c29","n11-c30","n11-c31","n11-c32","n11-c33","n11-c34","n11-c35","n11-c36","n11-c37","n11-c38","n11-c39","n11-c40","n11-c41","n11-c42","n11-c43","n11-c44","n11-c45","n11-c46","n11-c47","n11-c48","n11-c49","n11-c50","n11-c51","n11-c52","n11-c53","n11-c54","n11-c55","n11-c56","n11-c57","n11-c58","n11-c59","n11-c60","n11-c61","n11-c62","n11-c63","n11-c64","n11-c65","n11-c66","n11-c67","n11-c68","n11-c69","n11-c70","n11-c71","n11-c72","n11-c73","n11-c74","n11-c75","n11-c76","n11-c77","n11-c78","n11-c79","n11-c80","n11-c81","n11-c82","n11-c83","n11-c84","n11-c85","n11-c86","n11-c87","n11-c88","n11-c89","n11-c90","n11-c91","n11-c92","n11-c93","n11-c94","n11-c95","n11-c96","n11-c97","n11-c98","n11-c99","n11-c100","n11-c101","n11-c102","n11-c103","n11-c104","n11-c105","n11-c106","n11-c107","n11-c108","n11-c109","n11-c110","n11-c111","n11-c112","n11-c113","n11-c114","n11-c115","n11-c116","n11-c117","n11-c118","n11-c119","n11-c120","n11-c121","n11-c122","n11-c123","n11-c124","n11-c125","n11-c126","n11-c127","n11-c128","n11-c129","n11-c130","n11-c131","n11-c132","n11-c133","n11-c134","n11-c135","n11-c136","n11-c137","n11-c138","n11-c139","n11-c140","n11-c141","n11-c142","n11-c143","n11-c144","n11-c145","n11-c146","n11-c147","n11-c148","n11-c149","n11-c150","n11-c151","n11-c152","n11-c153","n11-c154","n11-c155","n11-c156","n11-c157","n11-c158","n11-c159","n11-c160","n11-c161","n11-c162","n11-c163","n11-c164","n11-c165","n11-c166","n11-c167","n11-c168","n11-c169","n11-c170","n11-c171","n11-c172","n11-c173","n11-c174","n11-c175","n11-c176","n11-c177","n11-c178","n11-c179","n11-c180","n11-c181","n11-c182","n11-c183"],"12":["n12-c1","n12-c2","n12-c3","n12-c4","n12-c5","n12-c6","n12-c7","n12-c8","n12-c9","n12-c10","n12-c11","n12-c12","n12-c13","n12-c14","n12-c15","n12-c16","n12-c17","n12-c18","n12-c19","n12-c20","n12-c21","n12-c22","n12-c23","n12-c24","n12-c25","n12-c26","n12-c27","n12-c28","n12-c29","n12-c30","n12-c31","n12-c32","n12-c33","n12-c34","n12-c35","n12-c36","n12-c37","n12-c38","n12-c39","n12-c40","n12-c41","n12-c42","n12-c43","n12-c44","n12-c45","n12-c46","n12-c47","n12-c48","n12-c49","n12-c50","n12-c51","n12-c52","n12-c53","n12-c54","n12-c55","n12-c56","n12-c57","n12-c58","n12-c59","n12-c60","n12-c61","n12-c62","n12-c63","n12-c64","n12-c65","n12-c66","n12-c67","n12-c68","n12-c69","n12-c70","n12-c71","n12-c72","n12-c73","n12-c74","n12-c75","n12-c76","n12-c77","n12-c78","n12-c79","n12-c80","n12-c81","n12-c82","n12-c83","n12-c84","n12-c85","n12-c86","n12-c87","n12-c88","n12-c89","n12-c90","n12-c91","n12-c92","n12-c93","n12-c94","n12-c95","n12-c96","n12-c97","n12-c98","n12-c99","n12-c100","n12-c101","n12-c102","n12-c103","n12-c104","n12-c105","n12-c106","n12-c107","n12-c108","n12-c109","n12-c110","n12-c111","n12-c112","n12-c113","n12-c114","n12-c115","n12-c116","n12-c117","n12-c118","n12-c119","n12-c120","n12-c121","n12-c122","n12-c123","n12-c124","n12-c125","n12-c126","n12-c127","n12-c128","n12-c129","n12-c130","n12-c131","n12-c132","n12-c133","n12-c134","n12-c135","n12-c136","n12-c137","n12-c138","n12-c139","n12-c140","n12-c141","n12-c142","n12-c143","n12-c144","n12-c145","n12-c146","n12-c147","n12-c148","n12-c149","n12-c150","n12-c151","n12-c152","n12-c153","n12-c154","n12-c155","n12-c156","n12-c157","n12-c158","n12-c159","n12-c160","n12-c161","n12-c162","n12-c163","n12-c164","n12-c165","n12-c166","n12-c167","n12-c168","n12-c169","n12-c170","n12-c171","n12-c172","n12-c173","n12-c174","n12-c175","n12-c176","n12-c177","n12-c178","n12-c179","n12-c180","n12-c181","n12-c182","n12-c183","n12-c184","n12-c185","n12-c186","n12-c187","n12-c188","n12-c189","n12-c190","n12-c191","n12-c192","n12-c193","n12-c194","n12-c195","n12-c196","n12-c197","n12-c198","n12-c199","n12-c200","n12-c201","n12-c202","n12-c203","n12-c204","n12-c205","n12-c206","n12-c207","n12-c208","n12-c209","n12-c210","n12-c211","n12-c212","n12-c213","n12-c214","n12-c215","n12-c216","n12-c217","n12-c218","n12-c219","n12-c220","n12-c221","n12-c222","n12-c223","n12-c224","n12-c225","n12-c226","n12-c227","n12-c228","n12-c229","n12-c230","n12-c231","n12-c232","n12-c233","n12-c234","n12-c235","n12-c236","n12-c237","n12-c238","n12-c239","n12-c240","n12-c241","n12-c242","n12-c243","n12-c244","n12-c245","n12-c246","n12-c247","n12-c248","n12-c249","n12-c250","n12-c251","n12-c252","n12-c253","n12-c254","n12-c255","n12-c256","n12-c257","n12-c258","n12-c259","n12-c260","n12-c261","n12-c262","n12-c263","n12-c264","n12-c265","n12-c266","n12-c267","n12-c268","n12-c269","n12-c270","n12-c271","n12-c272","n12-c273","n12-c274","n12-c275","n12-c276","n12-c277","n12-c278","n12-c279","n12-c280","n12-c281","n12-c282","n12-c283","n12-c284","n12-c285","n12-c286","n12-c287","n12-c288","n12-c289","n12-c290","n12-c291","n12-c292","n12-c293","n12-c294","n12-c295","n12-c296","n12-c297","n12-c298","n12-c299","n12-c300","n12-c301","n12-c302","n12-c303","n12-c304","n12-c305","n12-c306","n12-c307","n12-c308","n12-c309","n12-c310","n12-c311","n12-c312","n12-c313","n12-c314","n12-c315","n12-c316","n12-c317","n12-c318","n12-c319","n12-c320","n12-c321","n12-c322","n12-c323","n12-c324","n12-c325","n12-c326","n12-c327","n12-c328","n12-c329","n12-c330","n12-c331","n12-c332","n12-c333","n12-c334","n12-c335","n12-c336","n12-c337","n12-c338","n12-c339","n12-c340","n12-c341","n12-c342","n12-c343","n12-c344","n12-c345","n12-c346","n12-c347","n12-c348","n12-c349","n12-c350","n12-c351","n12-c352","n12-c353","n12-c354","n12-c355","n12-c356","n12-c357","n12-c358","n12-c359","n12-c360","n12-c361","n12-c362","n12-c363","n12-c364","n12-c365","n12-c366","n12-c367","n12-c368","n12-c369","n12-c370","n12-c371","n12-c372","n12-c373","n12-c374","n12-c375","n12-c376","n12-c377","n12-c378","n12-c379","n12-c380","n12-c381","n12-c382","n12-c383","n12-c384","n12-c385","n12-c386","n12-c387","n12-c388","n12-c389","n12-c390","n12-c391","n12-c392","n12-c393","n12-c394","n12-c395","n12-c396","n12-c397","n12-c398","n12-c399","n12-c400","n12-c401","n12-c402","n12-c403","n12-c404","n12-c405","n12-c406","n12-c407","n12-c408","n12-c409","n12-c410","n12-c411","n12-c412","n12-c413","n12-c414","n12-c415","n12-c416","n12-c417","n12-c418","n12-c419","n12-c420","n12-c421","n12-c422","n12-c423","n12-c424","n12-c425","n12-c426","n12-c427","n12-c428","n12-c429","n12-c430","n12-c431","n12-c432","n12-c433","n12-c434","n12-c435","n12-c436","n12-c437","n12-c438","n12-c439","n12-c440","n12-c441","n12-c442","n12-c443","n12-c444","n12-c445","n12-c446","n12-c447","n12-c448","n12-c449","n12-c450","n12-c451","n12-c452","n12-c453","n12-c454","n12-c455","n12-c456","n12-c457","n12-c458","n12-c459","n12-c460","n12-c461","n12-c462","n12-c463","n12-c464","n12-c465","n12-c466","n12-c467","n12-c468","n12-c469","n12-c470","n12-c471","n12-c472","n12-c473","n12-c474","n12-c475","n12-c476","n12-c477","n12-c478","n12-c479","n12-c480","n12-c481","n12-c482","n12-c483","n12-c484","n12-c485","n12-c486","n12-c487","n12-c488","n12-c489","n12-c490","n12-c491","n12-c492","n12-c493","n12-c494","n12-c495","n12-c496","n12-c497","n12-c498","n12-c499","n12-c500","n12-c501","n12-c502","n12-c503","n12-c504","n12-c505","n12-c506","n12-c507","n12-c508","n12-c509","n12-c510","n12-c511","n12-c512","n12-c513","n12-c514","n12-c515","n12-c516","n12-c517","n12-c518","n12-c519","n12-c520","n12-c521","n12-c522","n12-c523","n12-c524","n12-c525","n12-c526","n12-c527","n12-c528","n12-c529","n12-c530","n12-c531","n12-c532","n12-c533","n12-c534","n12-c535","n12-c536","n12-c537","n12-c538","n12-c539","n12-c540","n12-c541","n12-c542","n12-c543","n12-c544","n12-c545","n12-c546","n12-c547","n12-c548","n12-c549","n12-c550","n12-c551","n12-c552","n12-c553","n12-c554","n12-c555","n12-c556","n12-c557","n12-c558","n12-c559","n12-c560","n12-c561","n12-c562","n12-c563","n12-c564","n12-c565","n12-c566","n12-c567","n12-c568","n12-c569","n12-c570","n12-c571","n12-c572","n12-c573","n12-c574","n12-c575","n12-c576","n12-c577","n12-c578","n12-c579","n12-c580","n12-c581","n12-c582","n12-c583","n12-c584","n12-c585","n12-c586","n12-c587","n12-c588","n12-c589","n12-c590","n12-c591","n12-c592","n12-c593","n12-c594","n12-c595","n12-c596","n12-c597","n12-c598","n12-c599","n12-c600","n12-c601","n12-c602","n12-c603","n12-c604","n12-c605","n12-c606","n12-c607","n12-c608","n12-c609","n12-c610","n12-c611","n12-c612","n12-c613","n12-c614","n12-c615","n12-c616","n12-c617","n12-c618","n12-c619","n12-c620","n12-c621","n12-c622","n12-c623","n12-c624","n12-c625","n12-c626","n12-c627","n12-c628","n12-c629","n12-c630","n12-c631","n12-c632","n12-c633","n12-c634","n12-c635","n12-c636","n12-c637","n12-c638","n12-c639","n12-c640","n12-c641","n12-c642","n12-c643","n12-c644","n12-c645","n12-c646","n12-c647","n12-c648","n12-c649","n12-c650","n12-c651","n12-c652","n12-c653","n12-c654","n12-c655","n12-c656","n12-c657"]};
+    const CHUNK_BY_ID = {"n1-c1":"fiber_1_part_1.html","n4-c1":"fiber_4_part_1.html","n6-c1":"fiber_6_part_1.html","n7-c1":"fiber_7_part_1.html","n7-c2":"fiber_7_part_1.html","n8-c1":"fiber_8_part_1.html","n8-c2":"fiber_8_part_1.html","n8-c3":"fiber_8_part_1.html","n8-c4":"fiber_8_part_1.html","n8-c5":"fiber_8_part_1.html","n8-c6":"fiber_8_part_1.html","n9-c1":"fiber_9_part_1.html","n9-c2":"fiber_9_part_1.html","n9-c3":"fiber_9_part_1.html","n9-c4":"fiber_9_part_1.html","n9-c5":"fiber_9_part_1.html","n9-c6":"fiber_9_part_1.html","n9-c7":"fiber_9_part_1.html","n9-c8":"fiber_9_part_1.html","n9-c9":"fiber_9_part_1.html","n9-c10":"fiber_9_part_1.html","n9-c11":"fiber_9_part_1.html","n9-c12":"fiber_9_part_1.html","n9-c13":"fiber_9_part_1.html","n9-c14":"fiber_9_part_1.html","n9-c15":"fiber_9_part_1.html","n9-c16":"fiber_9_part_1.html","n10-c1":"fiber_10_part_1.html","n10-c2":"fiber_10_part_1.html","n10-c3":"fiber_10_part_1.html","n10-c4":"fiber_10_part_1.html","n10-c5":"fiber_10_part_1.html","n10-c6":"fiber_10_part_1.html","n10-c7":"fiber_10_part_1.html","n10-c8":"fiber_10_part_1.html","n10-c9":"fiber_10_part_1.html","n10-c10":"fiber_10_part_1.html","n10-c11":"fiber_10_part_1.html","n10-c12":"fiber_10_part_1.html","n10-c13":"fiber_10_part_1.html","n10-c14":"fiber_10_part_1.html","n10-c15":"fiber_10_part_1.html","n10-c16":"fiber_10_part_1.html","n10-c17":"fiber_10_part_1.html","n10-c18":"fiber_10_part_1.html","n10-c19":"fiber_10_part_1.html","n10-c20":"fiber_10_part_1.html","n10-c21":"fiber_10_part_1.html","n10-c22":"fiber_10_part_1.html","n10-c23":"fiber_10_part_1.html","n10-c24":"fiber_10_part_1.html","n10-c25":"fiber_10_part_1.html","n10-c26":"fiber_10_part_2.html","n10-c27":"fiber_10_part_2.html","n10-c28":"fiber_10_part_2.html","n10-c29":"fiber_10_part_2.html","n10-c30":"fiber_10_part_2.html","n10-c31":"fiber_10_part_2.html","n10-c32":"fiber_10_part_2.html","n10-c33":"fiber_10_part_2.html","n10-c34":"fiber_10_part_2.html","n10-c35":"fiber_10_part_2.html","n10-c36":"fiber_10_part_2.html","n10-c37":"fiber_10_part_2.html","n10-c38":"fiber_10_part_2.html","n10-c39":"fiber_10_part_2.html","n10-c40":"fiber_10_part_2.html","n10-c41":"fiber_10_part_2.html","n10-c42":"fiber_10_part_2.html","n10-c43":"fiber_10_part_2.html","n10-c44":"fiber_10_part_2.html","n10-c45":"fiber_10_part_2.html","n10-c46":"fiber_10_part_2.html","n10-c47":"fiber_10_part_2.html","n10-c48":"fiber_10_part_2.html","n10-c49":"fiber_10_part_2.html","n10-c50":"fiber_10_part_2.html","n10-c51":"fiber_10_part_3.html","n10-c52":"fiber_10_part_3.html","n10-c53":"fiber_10_part_3.html","n10-c54":"fiber_10_part_3.html","n10-c55":"fiber_10_part_3.html","n10-c56":"fiber_10_part_3.html","n11-c1":"fiber_11_part_1.html","n11-c2":"fiber_11_part_1.html","n11-c3":"fiber_11_part_1.html","n11-c4":"fiber_11_part_1.html","n11-c5":"fiber_11_part_1.html","n11-c6":"fiber_11_part_1.html","n11-c7":"fiber_11_part_1.html","n11-c8":"fiber_11_part_1.html","n11-c9":"fiber_11_part_1.html","n11-c10":"fiber_11_part_1.html","n11-c11":"fiber_11_part_1.html","n11-c12":"fiber_11_part_1.html","n11-c13":"fiber_11_part_1.html","n11-c14":"fiber_11_part_1.html","n11-c15":"fiber_11_part_1.html","n11-c16":"fiber_11_part_1.html","n11-c17":"fiber_11_part_1.html","n11-c18":"fiber_11_part_1.html","n11-c19":"fiber_11_part_1.html","n11-c20":"fiber_11_part_1.html","n11-c21":"fiber_11_part_1.html","n11-c22":"fiber_11_part_1.html","n11-c23":"fiber_11_part_1.html","n11-c24":"fiber_11_part_1.html","n11-c25":"fiber_11_part_1.html","n11-c26":"fiber_11_part_2.html","n11-c27":"fiber_11_part_2.html","n11-c28":"fiber_11_part_2.html","n11-c29":"fiber_11_part_2.html","n11-c30":"fiber_11_part_2.html","n11-c31":"fiber_11_part_2.html","n11-c32":"fiber_11_part_2.html","n11-c33":"fiber_11_part_2.html","n11-c34":"fiber_11_part_2.html","n11-c35":"fiber_11_part_2.html","n11-c36":"fiber_11_part_2.html","n11-c37":"fiber_11_part_2.html","n11-c38":"fiber_11_part_2.html","n11-c39":"fiber_11_part_2.html","n11-c40":"fiber_11_part_2.html","n11-c41":"fiber_11_part_2.html","n11-c42":"fiber_11_part_2.html","n11-c43":"fiber_11_part_2.html","n11-c44":"fiber_11_part_2.html","n11-c45":"fiber_11_part_2.html","n11-c46":"fiber_11_part_2.html","n11-c47":"fiber_11_part_2.html","n11-c48":"fiber_11_part_2.html","n11-c49":"fiber_11_part_2.html","n11-c50":"fiber_11_part_2.html","n11-c51":"fiber_11_part_3.html","n11-c52":"fiber_11_part_3.html","n11-c53":"fiber_11_part_3.html","n11-c54":"fiber_11_part_3.html","n11-c55":"fiber_11_part_3.html","n11-c56":"fiber_11_part_3.html","n11-c57":"fiber_11_part_3.html","n11-c58":"fiber_11_part_3.html","n11-c59":"fiber_11_part_3.html","n11-c60":"fiber_11_part_3.html","n11-c61":"fiber_11_part_3.html","n11-c62":"fiber_11_part_3.html","n11-c63":"fiber_11_part_3.html","n11-c64":"fiber_11_part_3.html","n11-c65":"fiber_11_part_3.html","n11-c66":"fiber_11_part_3.html","n11-c67":"fiber_11_part_3.html","n11-c68":"fiber_11_part_3.html","n11-c69":"fiber_11_part_3.html","n11-c70":"fiber_11_part_3.html","n11-c71":"fiber_11_part_3.html","n11-c72":"fiber_11_part_3.html","n11-c73":"fiber_11_part_3.html","n11-c74":"fiber_11_part_3.html","n11-c75":"fiber_11_part_3.html","n11-c76":"fiber_11_part_4.html","n11-c77":"fiber_11_part_4.html","n11-c78":"fiber_11_part_4.html","n11-c79":"fiber_11_part_4.html","n11-c80":"fiber_11_part_4.html","n11-c81":"fiber_11_part_4.html","n11-c82":"fiber_11_part_4.html","n11-c83":"fiber_11_part_4.html","n11-c84":"fiber_11_part_4.html","n11-c85":"fiber_11_part_4.html","n11-c86":"fiber_11_part_4.html","n11-c87":"fiber_11_part_4.html","n11-c88":"fiber_11_part_4.html","n11-c89":"fiber_11_part_4.html","n11-c90":"fiber_11_part_4.html","n11-c91":"fiber_11_part_4.html","n11-c92":"fiber_11_part_4.html","n11-c93":"fiber_11_part_4.html","n11-c94":"fiber_11_part_4.html","n11-c95":"fiber_11_part_4.html","n11-c96":"fiber_11_part_4.html","n11-c97":"fiber_11_part_4.html","n11-c98":"fiber_11_part_4.html","n11-c99":"fiber_11_part_4.html","n11-c100":"fiber_11_part_4.html","n11-c101":"fiber_11_part_5.html","n11-c102":"fiber_11_part_5.html","n11-c103":"fiber_11_part_5.html","n11-c104":"fiber_11_part_5.html","n11-c105":"fiber_11_part_5.html","n11-c106":"fiber_11_part_5.html","n11-c107":"fiber_11_part_5.html","n11-c108":"fiber_11_part_5.html","n11-c109":"fiber_11_part_5.html","n11-c110":"fiber_11_part_5.html","n11-c111":"fiber_11_part_5.html","n11-c112":"fiber_11_part_5.html","n11-c113":"fiber_11_part_5.html","n11-c114":"fiber_11_part_5.html","n11-c115":"fiber_11_part_5.html","n11-c116":"fiber_11_part_5.html","n11-c117":"fiber_11_part_5.html","n11-c118":"fiber_11_part_5.html","n11-c119":"fiber_11_part_5.html","n11-c120":"fiber_11_part_5.html","n11-c121":"fiber_11_part_5.html","n11-c122":"fiber_11_part_5.html","n11-c123":"fiber_11_part_5.html","n11-c124":"fiber_11_part_5.html","n11-c125":"fiber_11_part_5.html","n11-c126":"fiber_11_part_6.html","n11-c127":"fiber_11_part_6.html","n11-c128":"fiber_11_part_6.html","n11-c129":"fiber_11_part_6.html","n11-c130":"fiber_11_part_6.html","n11-c131":"fiber_11_part_6.html","n11-c132":"fiber_11_part_6.html","n11-c133":"fiber_11_part_6.html","n11-c134":"fiber_11_part_6.html","n11-c135":"fiber_11_part_6.html","n11-c136":"fiber_11_part_6.html","n11-c137":"fiber_11_part_6.html","n11-c138":"fiber_11_part_6.html","n11-c139":"fiber_11_part_6.html","n11-c140":"fiber_11_part_6.html","n11-c141":"fiber_11_part_6.html","n11-c142":"fiber_11_part_6.html","n11-c143":"fiber_11_part_6.html","n11-c144":"fiber_11_part_6.html","n11-c145":"fiber_11_part_6.html","n11-c146":"fiber_11_part_6.html","n11-c147":"fiber_11_part_6.html","n11-c148":"fiber_11_part_6.html","n11-c149":"fiber_11_part_6.html","n11-c150":"fiber_11_part_6.html","n11-c151":"fiber_11_part_7.html","n11-c152":"fiber_11_part_7.html","n11-c153":"fiber_11_part_7.html","n11-c154":"fiber_11_part_7.html","n11-c155":"fiber_11_part_7.html","n11-c156":"fiber_11_part_7.html","n11-c157":"fiber_11_part_7.html","n11-c158":"fiber_11_part_7.html","n11-c159":"fiber_11_part_7.html","n11-c160":"fiber_11_part_7.html","n11-c161":"fiber_11_part_7.html","n11-c162":"fiber_11_part_7.html","n11-c163":"fiber_11_part_7.html","n11-c164":"fiber_11_part_7.html","n11-c165":"fiber_11_part_7.html","n11-c166":"fiber_11_part_7.html","n11-c167":"fiber_11_part_7.html","n11-c168":"fiber_11_part_7.html","n11-c169":"fiber_11_part_7.html","n11-c170":"fiber_11_part_7.html","n11-c171":"fiber_11_part_7.html","n11-c172":"fiber_11_part_7.html","n11-c173":"fiber_11_part_7.html","n11-c174":"fiber_11_part_7.html","n11-c175":"fiber_11_part_7.html","n11-c176":"fiber_11_part_8.html","n11-c177":"fiber_11_part_8.html","n11-c178":"fiber_11_part_8.html","n11-c179":"fiber_11_part_8.html","n11-c180":"fiber_11_part_8.html","n11-c181":"fiber_11_part_8.html","n11-c182":"fiber_11_part_8.html","n11-c183":"fiber_11_part_8.html","n12-c1":"fiber_12_part_1.html","n12-c2":"fiber_12_part_1.html","n12-c3":"fiber_12_part_1.html","n12-c4":"fiber_12_part_1.html","n12-c5":"fiber_12_part_1.html","n12-c6":"fiber_12_part_1.html","n12-c7":"fiber_12_part_1.html","n12-c8":"fiber_12_part_1.html","n12-c9":"fiber_12_part_1.html","n12-c10":"fiber_12_part_1.html","n12-c11":"fiber_12_part_1.html","n12-c12":"fiber_12_part_1.html","n12-c13":"fiber_12_part_1.html","n12-c14":"fiber_12_part_1.html","n12-c15":"fiber_12_part_1.html","n12-c16":"fiber_12_part_1.html","n12-c17":"fiber_12_part_1.html","n12-c18":"fiber_12_part_1.html","n12-c19":"fiber_12_part_1.html","n12-c20":"fiber_12_part_1.html","n12-c21":"fiber_12_part_1.html","n12-c22":"fiber_12_part_1.html","n12-c23":"fiber_12_part_1.html","n12-c24":"fiber_12_part_1.html","n12-c25":"fiber_12_part_1.html","n12-c26":"fiber_12_part_2.html","n12-c27":"fiber_12_part_2.html","n12-c28":"fiber_12_part_2.html","n12-c29":"fiber_12_part_2.html","n12-c30":"fiber_12_part_2.html","n12-c31":"fiber_12_part_2.html","n12-c32":"fiber_12_part_2.html","n12-c33":"fiber_12_part_2.html","n12-c34":"fiber_12_part_2.html","n12-c35":"fiber_12_part_2.html","n12-c36":"fiber_12_part_2.html","n12-c37":"fiber_12_part_2.html","n12-c38":"fiber_12_part_2.html","n12-c39":"fiber_12_part_2.html","n12-c40":"fiber_12_part_2.html","n12-c41":"fiber_12_part_2.html","n12-c42":"fiber_12_part_2.html","n12-c43":"fiber_12_part_2.html","n12-c44":"fiber_12_part_2.html","n12-c45":"fiber_12_part_2.html","n12-c46":"fiber_12_part_2.html","n12-c47":"fiber_12_part_2.html","n12-c48":"fiber_12_part_2.html","n12-c49":"fiber_12_part_2.html","n12-c50":"fiber_12_part_2.html","n12-c51":"fiber_12_part_3.html","n12-c52":"fiber_12_part_3.html","n12-c53":"fiber_12_part_3.html","n12-c54":"fiber_12_part_3.html","n12-c55":"fiber_12_part_3.html","n12-c56":"fiber_12_part_3.html","n12-c57":"fiber_12_part_3.html","n12-c58":"fiber_12_part_3.html","n12-c59":"fiber_12_part_3.html","n12-c60":"fiber_12_part_3.html","n12-c61":"fiber_12_part_3.html","n12-c62":"fiber_12_part_3.html","n12-c63":"fiber_12_part_3.html","n12-c64":"fiber_12_part_3.html","n12-c65":"fiber_12_part_3.html","n12-c66":"fiber_12_part_3.html","n12-c67":"fiber_12_part_3.html","n12-c68":"fiber_12_part_3.html","n12-c69":"fiber_12_part_3.html","n12-c70":"fiber_12_part_3.html","n12-c71":"fiber_12_part_3.html","n12-c72":"fiber_12_part_3.html","n12-c73":"fiber_12_part_3.html","n12-c74":"fiber_12_part_3.html","n12-c75":"fiber_12_part_3.html","n12-c76":"fiber_12_part_4.html","n12-c77":"fiber_12_part_4.html","n12-c78":"fiber_12_part_4.html","n12-c79":"fiber_12_part_4.html","n12-c80":"fiber_12_part_4.html","n12-c81":"fiber_12_part_4.html","n12-c82":"fiber_12_part_4.html","n12-c83":"fiber_12_part_4.html","n12-c84":"fiber_12_part_4.html","n12-c85":"fiber_12_part_4.html","n12-c86":"fiber_12_part_4.html","n12-c87":"fiber_12_part_4.html","n12-c88":"fiber_12_part_4.html","n12-c89":"fiber_12_part_4.html","n12-c90":"fiber_12_part_4.html","n12-c91":"fiber_12_part_4.html","n12-c92":"fiber_12_part_4.html","n12-c93":"fiber_12_part_4.html","n12-c94":"fiber_12_part_4.html","n12-c95":"fiber_12_part_4.html","n12-c96":"fiber_12_part_4.html","n12-c97":"fiber_12_part_4.html","n12-c98":"fiber_12_part_4.html","n12-c99":"fiber_12_part_4.html","n12-c100":"fiber_12_part_4.html","n12-c101":"fiber_12_part_5.html","n12-c102":"fiber_12_part_5.html","n12-c103":"fiber_12_part_5.html","n12-c104":"fiber_12_part_5.html","n12-c105":"fiber_12_part_5.html","n12-c106":"fiber_12_part_5.html","n12-c107":"fiber_12_part_5.html","n12-c108":"fiber_12_part_5.html","n12-c109":"fiber_12_part_5.html","n12-c110":"fiber_12_part_5.html","n12-c111":"fiber_12_part_5.html","n12-c112":"fiber_12_part_5.html","n12-c113":"fiber_12_part_5.html","n12-c114":"fiber_12_part_5.html","n12-c115":"fiber_12_part_5.html","n12-c116":"fiber_12_part_5.html","n12-c117":"fiber_12_part_5.html","n12-c118":"fiber_12_part_5.html","n12-c119":"fiber_12_part_5.html","n12-c120":"fiber_12_part_5.html","n12-c121":"fiber_12_part_5.html","n12-c122":"fiber_12_part_5.html","n12-c123":"fiber_12_part_5.html","n12-c124":"fiber_12_part_5.html","n12-c125":"fiber_12_part_5.html","n12-c126":"fiber_12_part_6.html","n12-c127":"fiber_12_part_6.html","n12-c128":"fiber_12_part_6.html","n12-c129":"fiber_12_part_6.html","n12-c130":"fiber_12_part_6.html","n12-c131":"fiber_12_part_6.html","n12-c132":"fiber_12_part_6.html","n12-c133":"fiber_12_part_6.html","n12-c134":"fiber_12_part_6.html","n12-c135":"fiber_12_part_6.html","n12-c136":"fiber_12_part_6.html","n12-c137":"fiber_12_part_6.html","n12-c138":"fiber_12_part_6.html","n12-c139":"fiber_12_part_6.html","n12-c140":"fiber_12_part_6.html","n12-c141":"fiber_12_part_6.html","n12-c142":"fiber_12_part_6.html","n12-c143":"fiber_12_part_6.html","n12-c144":"fiber_12_part_6.html","n12-c145":"fiber_12_part_6.html","n12-c146":"fiber_12_part_6.html","n12-c147":"fiber_12_part_6.html","n12-c148":"fiber_12_part_6.html","n12-c149":"fiber_12_part_6.html","n12-c150":"fiber_12_part_6.html","n12-c151":"fiber_12_part_7.html","n12-c152":"fiber_12_part_7.html","n12-c153":"fiber_12_part_7.html","n12-c154":"fiber_12_part_7.html","n12-c155":"fiber_12_part_7.html","n12-c156":"fiber_12_part_7.html","n12-c157":"fiber_12_part_7.html","n12-c158":"fiber_12_part_7.html","n12-c159":"fiber_12_part_7.html","n12-c160":"fiber_12_part_7.html","n12-c161":"fiber_12_part_7.html","n12-c162":"fiber_12_part_7.html","n12-c163":"fiber_12_part_7.html","n12-c164":"fiber_12_part_7.html","n12-c165":"fiber_12_part_7.html","n12-c166":"fiber_12_part_7.html","n12-c167":"fiber_12_part_7.html","n12-c168":"fiber_12_part_7.html","n12-c169":"fiber_12_part_7.html","n12-c170":"fiber_12_part_7.html","n12-c171":"fiber_12_part_7.html","n12-c172":"fiber_12_part_7.html","n12-c173":"fiber_12_part_7.html","n12-c174":"fiber_12_part_7.html","n12-c175":"fiber_12_part_7.html","n12-c176":"fiber_12_part_8.html","n12-c177":"fiber_12_part_8.html","n12-c178":"fiber_12_part_8.html","n12-c179":"fiber_12_part_8.html","n12-c180":"fiber_12_part_8.html","n12-c181":"fiber_12_part_8.html","n12-c182":"fiber_12_part_8.html","n12-c183":"fiber_12_part_8.html","n12-c184":"fiber_12_part_8.html","n12-c185":"fiber_12_part_8.html","n12-c186":"fiber_12_part_8.html","n12-c187":"fiber_12_part_8.html","n12-c188":"fiber_12_part_8.html","n12-c189":"fiber_12_part_8.html","n12-c190":"fiber_12_part_8.html","n12-c191":"fiber_12_part_8.html","n12-c192":"fiber_12_part_8.html","n12-c193":"fiber_12_part_8.html","n12-c194":"fiber_12_part_8.html","n12-c195":"fiber_12_part_8.html","n12-c196":"fiber_12_part_8.html","n12-c197":"fiber_12_part_8.html","n12-c198":"fiber_12_part_8.html","n12-c199":"fiber_12_part_8.html","n12-c200":"fiber_12_part_8.html","n12-c201":"fiber_12_part_9.html","n12-c202":"fiber_12_part_9.html","n12-c203":"fiber_12_part_9.html","n12-c204":"fiber_12_part_9.html","n12-c205":"fiber_12_part_9.html","n12-c206":"fiber_12_part_9.html","n12-c207":"fiber_12_part_9.html","n12-c208":"fiber_12_part_9.html","n12-c209":"fiber_12_part_9.html","n12-c210":"fiber_12_part_9.html","n12-c211":"fiber_12_part_9.html","n12-c212":"fiber_12_part_9.html","n12-c213":"fiber_12_part_9.html","n12-c214":"fiber_12_part_9.html","n12-c215":"fiber_12_part_9.html","n12-c216":"fiber_12_part_9.html","n12-c217":"fiber_12_part_9.html","n12-c218":"fiber_12_part_9.html","n12-c219":"fiber_12_part_9.html","n12-c220":"fiber_12_part_9.html","n12-c221":"fiber_12_part_9.html","n12-c222":"fiber_12_part_9.html","n12-c223":"fiber_12_part_9.html","n12-c224":"fiber_12_part_9.html","n12-c225":"fiber_12_part_9.html","n12-c226":"fiber_12_part_10.html","n12-c227":"fiber_12_part_10.html","n12-c228":"fiber_12_part_10.html","n12-c229":"fiber_12_part_10.html","n12-c230":"fiber_12_part_10.html","n12-c231":"fiber_12_part_10.html","n12-c232":"fiber_12_part_10.html","n12-c233":"fiber_12_part_10.html","n12-c234":"fiber_12_part_10.html","n12-c235":"fiber_12_part_10.html","n12-c236":"fiber_12_part_10.html","n12-c237":"fiber_12_part_10.html","n12-c238":"fiber_12_part_10.html","n12-c239":"fiber_12_part_10.html","n12-c240":"fiber_12_part_10.html","n12-c241":"fiber_12_part_10.html","n12-c242":"fiber_12_part_10.html","n12-c243":"fiber_12_part_10.html","n12-c244":"fiber_12_part_10.html","n12-c245":"fiber_12_part_10.html","n12-c246":"fiber_12_part_10.html","n12-c247":"fiber_12_part_10.html","n12-c248":"fiber_12_part_10.html","n12-c249":"fiber_12_part_10.html","n12-c250":"fiber_12_part_10.html","n12-c251":"fiber_12_part_11.html","n12-c252":"fiber_12_part_11.html","n12-c253":"fiber_12_part_11.html","n12-c254":"fiber_12_part_11.html","n12-c255":"fiber_12_part_11.html","n12-c256":"fiber_12_part_11.html","n12-c257":"fiber_12_part_11.html","n12-c258":"fiber_12_part_11.html","n12-c259":"fiber_12_part_11.html","n12-c260":"fiber_12_part_11.html","n12-c261":"fiber_12_part_11.html","n12-c262":"fiber_12_part_11.html","n12-c263":"fiber_12_part_11.html","n12-c264":"fiber_12_part_11.html","n12-c265":"fiber_12_part_11.html","n12-c266":"fiber_12_part_11.html","n12-c267":"fiber_12_part_11.html","n12-c268":"fiber_12_part_11.html","n12-c269":"fiber_12_part_11.html","n12-c270":"fiber_12_part_11.html","n12-c271":"fiber_12_part_11.html","n12-c272":"fiber_12_part_11.html","n12-c273":"fiber_12_part_11.html","n12-c274":"fiber_12_part_11.html","n12-c275":"fiber_12_part_11.html","n12-c276":"fiber_12_part_12.html","n12-c277":"fiber_12_part_12.html","n12-c278":"fiber_12_part_12.html","n12-c279":"fiber_12_part_12.html","n12-c280":"fiber_12_part_12.html","n12-c281":"fiber_12_part_12.html","n12-c282":"fiber_12_part_12.html","n12-c283":"fiber_12_part_12.html","n12-c284":"fiber_12_part_12.html","n12-c285":"fiber_12_part_12.html","n12-c286":"fiber_12_part_12.html","n12-c287":"fiber_12_part_12.html","n12-c288":"fiber_12_part_12.html","n12-c289":"fiber_12_part_12.html","n12-c290":"fiber_12_part_12.html","n12-c291":"fiber_12_part_12.html","n12-c292":"fiber_12_part_12.html","n12-c293":"fiber_12_part_12.html","n12-c294":"fiber_12_part_12.html","n12-c295":"fiber_12_part_12.html","n12-c296":"fiber_12_part_12.html","n12-c297":"fiber_12_part_12.html","n12-c298":"fiber_12_part_12.html","n12-c299":"fiber_12_part_12.html","n12-c300":"fiber_12_part_12.html","n12-c301":"fiber_12_part_13.html","n12-c302":"fiber_12_part_13.html","n12-c303":"fiber_12_part_13.html","n12-c304":"fiber_12_part_13.html","n12-c305":"fiber_12_part_13.html","n12-c306":"fiber_12_part_13.html","n12-c307":"fiber_12_part_13.html","n12-c308":"fiber_12_part_13.html","n12-c309":"fiber_12_part_13.html","n12-c310":"fiber_12_part_13.html","n12-c311":"fiber_12_part_13.html","n12-c312":"fiber_12_part_13.html","n12-c313":"fiber_12_part_13.html","n12-c314":"fiber_12_part_13.html","n12-c315":"fiber_12_part_13.html","n12-c316":"fiber_12_part_13.html","n12-c317":"fiber_12_part_13.html","n12-c318":"fiber_12_part_13.html","n12-c319":"fiber_12_part_13.html","n12-c320":"fiber_12_part_13.html","n12-c321":"fiber_12_part_13.html","n12-c322":"fiber_12_part_13.html","n12-c323":"fiber_12_part_13.html","n12-c324":"fiber_12_part_13.html","n12-c325":"fiber_12_part_13.html","n12-c326":"fiber_12_part_14.html","n12-c327":"fiber_12_part_14.html","n12-c328":"fiber_12_part_14.html","n12-c329":"fiber_12_part_14.html","n12-c330":"fiber_12_part_14.html","n12-c331":"fiber_12_part_14.html","n12-c332":"fiber_12_part_14.html","n12-c333":"fiber_12_part_14.html","n12-c334":"fiber_12_part_14.html","n12-c335":"fiber_12_part_14.html","n12-c336":"fiber_12_part_14.html","n12-c337":"fiber_12_part_14.html","n12-c338":"fiber_12_part_14.html","n12-c339":"fiber_12_part_14.html","n12-c340":"fiber_12_part_14.html","n12-c341":"fiber_12_part_14.html","n12-c342":"fiber_12_part_14.html","n12-c343":"fiber_12_part_14.html","n12-c344":"fiber_12_part_14.html","n12-c345":"fiber_12_part_14.html","n12-c346":"fiber_12_part_14.html","n12-c347":"fiber_12_part_14.html","n12-c348":"fiber_12_part_14.html","n12-c349":"fiber_12_part_14.html","n12-c350":"fiber_12_part_14.html","n12-c351":"fiber_12_part_15.html","n12-c352":"fiber_12_part_15.html","n12-c353":"fiber_12_part_15.html","n12-c354":"fiber_12_part_15.html","n12-c355":"fiber_12_part_15.html","n12-c356":"fiber_12_part_15.html","n12-c357":"fiber_12_part_15.html","n12-c358":"fiber_12_part_15.html","n12-c359":"fiber_12_part_15.html","n12-c360":"fiber_12_part_15.html","n12-c361":"fiber_12_part_15.html","n12-c362":"fiber_12_part_15.html","n12-c363":"fiber_12_part_15.html","n12-c364":"fiber_12_part_15.html","n12-c365":"fiber_12_part_15.html","n12-c366":"fiber_12_part_15.html","n12-c367":"fiber_12_part_15.html","n12-c368":"fiber_12_part_15.html","n12-c369":"fiber_12_part_15.html","n12-c370":"fiber_12_part_15.html","n12-c371":"fiber_12_part_15.html","n12-c372":"fiber_12_part_15.html","n12-c373":"fiber_12_part_15.html","n12-c374":"fiber_12_part_15.html","n12-c375":"fiber_12_part_15.html","n12-c376":"fiber_12_part_16.html","n12-c377":"fiber_12_part_16.html","n12-c378":"fiber_12_part_16.html","n12-c379":"fiber_12_part_16.html","n12-c380":"fiber_12_part_16.html","n12-c381":"fiber_12_part_16.html","n12-c382":"fiber_12_part_16.html","n12-c383":"fiber_12_part_16.html","n12-c384":"fiber_12_part_16.html","n12-c385":"fiber_12_part_16.html","n12-c386":"fiber_12_part_16.html","n12-c387":"fiber_12_part_16.html","n12-c388":"fiber_12_part_16.html","n12-c389":"fiber_12_part_16.html","n12-c390":"fiber_12_part_16.html","n12-c391":"fiber_12_part_16.html","n12-c392":"fiber_12_part_16.html","n12-c393":"fiber_12_part_16.html","n12-c394":"fiber_12_part_16.html","n12-c395":"fiber_12_part_16.html","n12-c396":"fiber_12_part_16.html","n12-c397":"fiber_12_part_16.html","n12-c398":"fiber_12_part_16.html","n12-c399":"fiber_12_part_16.html","n12-c400":"fiber_12_part_16.html","n12-c401":"fiber_12_part_17.html","n12-c402":"fiber_12_part_17.html","n12-c403":"fiber_12_part_17.html","n12-c404":"fiber_12_part_17.html","n12-c405":"fiber_12_part_17.html","n12-c406":"fiber_12_part_17.html","n12-c407":"fiber_12_part_17.html","n12-c408":"fiber_12_part_17.html","n12-c409":"fiber_12_part_17.html","n12-c410":"fiber_12_part_17.html","n12-c411":"fiber_12_part_17.html","n12-c412":"fiber_12_part_17.html","n12-c413":"fiber_12_part_17.html","n12-c414":"fiber_12_part_17.html","n12-c415":"fiber_12_part_17.html","n12-c416":"fiber_12_part_17.html","n12-c417":"fiber_12_part_17.html","n12-c418":"fiber_12_part_17.html","n12-c419":"fiber_12_part_17.html","n12-c420":"fiber_12_part_17.html","n12-c421":"fiber_12_part_17.html","n12-c422":"fiber_12_part_17.html","n12-c423":"fiber_12_part_17.html","n12-c424":"fiber_12_part_17.html","n12-c425":"fiber_12_part_17.html","n12-c426":"fiber_12_part_18.html","n12-c427":"fiber_12_part_18.html","n12-c428":"fiber_12_part_18.html","n12-c429":"fiber_12_part_18.html","n12-c430":"fiber_12_part_18.html","n12-c431":"fiber_12_part_18.html","n12-c432":"fiber_12_part_18.html","n12-c433":"fiber_12_part_18.html","n12-c434":"fiber_12_part_18.html","n12-c435":"fiber_12_part_18.html","n12-c436":"fiber_12_part_18.html","n12-c437":"fiber_12_part_18.html","n12-c438":"fiber_12_part_18.html","n12-c439":"fiber_12_part_18.html","n12-c440":"fiber_12_part_18.html","n12-c441":"fiber_12_part_18.html","n12-c442":"fiber_12_part_18.html","n12-c443":"fiber_12_part_18.html","n12-c444":"fiber_12_part_18.html","n12-c445":"fiber_12_part_18.html","n12-c446":"fiber_12_part_18.html","n12-c447":"fiber_12_part_18.html","n12-c448":"fiber_12_part_18.html","n12-c449":"fiber_12_part_18.html","n12-c450":"fiber_12_part_18.html","n12-c451":"fiber_12_part_19.html","n12-c452":"fiber_12_part_19.html","n12-c453":"fiber_12_part_19.html","n12-c454":"fiber_12_part_19.html","n12-c455":"fiber_12_part_19.html","n12-c456":"fiber_12_part_19.html","n12-c457":"fiber_12_part_19.html","n12-c458":"fiber_12_part_19.html","n12-c459":"fiber_12_part_19.html","n12-c460":"fiber_12_part_19.html","n12-c461":"fiber_12_part_19.html","n12-c462":"fiber_12_part_19.html","n12-c463":"fiber_12_part_19.html","n12-c464":"fiber_12_part_19.html","n12-c465":"fiber_12_part_19.html","n12-c466":"fiber_12_part_19.html","n12-c467":"fiber_12_part_19.html","n12-c468":"fiber_12_part_19.html","n12-c469":"fiber_12_part_19.html","n12-c470":"fiber_12_part_19.html","n12-c471":"fiber_12_part_19.html","n12-c472":"fiber_12_part_19.html","n12-c473":"fiber_12_part_19.html","n12-c474":"fiber_12_part_19.html","n12-c475":"fiber_12_part_19.html","n12-c476":"fiber_12_part_20.html","n12-c477":"fiber_12_part_20.html","n12-c478":"fiber_12_part_20.html","n12-c479":"fiber_12_part_20.html","n12-c480":"fiber_12_part_20.html","n12-c481":"fiber_12_part_20.html","n12-c482":"fiber_12_part_20.html","n12-c483":"fiber_12_part_20.html","n12-c484":"fiber_12_part_20.html","n12-c485":"fiber_12_part_20.html","n12-c486":"fiber_12_part_20.html","n12-c487":"fiber_12_part_20.html","n12-c488":"fiber_12_part_20.html","n12-c489":"fiber_12_part_20.html","n12-c490":"fiber_12_part_20.html","n12-c491":"fiber_12_part_20.html","n12-c492":"fiber_12_part_20.html","n12-c493":"fiber_12_part_20.html","n12-c494":"fiber_12_part_20.html","n12-c495":"fiber_12_part_20.html","n12-c496":"fiber_12_part_20.html","n12-c497":"fiber_12_part_20.html","n12-c498":"fiber_12_part_20.html","n12-c499":"fiber_12_part_20.html","n12-c500":"fiber_12_part_20.html","n12-c501":"fiber_12_part_21.html","n12-c502":"fiber_12_part_21.html","n12-c503":"fiber_12_part_21.html","n12-c504":"fiber_12_part_21.html","n12-c505":"fiber_12_part_21.html","n12-c506":"fiber_12_part_21.html","n12-c507":"fiber_12_part_21.html","n12-c508":"fiber_12_part_21.html","n12-c509":"fiber_12_part_21.html","n12-c510":"fiber_12_part_21.html","n12-c511":"fiber_12_part_21.html","n12-c512":"fiber_12_part_21.html","n12-c513":"fiber_12_part_21.html","n12-c514":"fiber_12_part_21.html","n12-c515":"fiber_12_part_21.html","n12-c516":"fiber_12_part_21.html","n12-c517":"fiber_12_part_21.html","n12-c518":"fiber_12_part_21.html","n12-c519":"fiber_12_part_21.html","n12-c520":"fiber_12_part_21.html","n12-c521":"fiber_12_part_21.html","n12-c522":"fiber_12_part_21.html","n12-c523":"fiber_12_part_21.html","n12-c524":"fiber_12_part_21.html","n12-c525":"fiber_12_part_21.html","n12-c526":"fiber_12_part_22.html","n12-c527":"fiber_12_part_22.html","n12-c528":"fiber_12_part_22.html","n12-c529":"fiber_12_part_22.html","n12-c530":"fiber_12_part_22.html","n12-c531":"fiber_12_part_22.html","n12-c532":"fiber_12_part_22.html","n12-c533":"fiber_12_part_22.html","n12-c534":"fiber_12_part_22.html","n12-c535":"fiber_12_part_22.html","n12-c536":"fiber_12_part_22.html","n12-c537":"fiber_12_part_22.html","n12-c538":"fiber_12_part_22.html","n12-c539":"fiber_12_part_22.html","n12-c540":"fiber_12_part_22.html","n12-c541":"fiber_12_part_22.html","n12-c542":"fiber_12_part_22.html","n12-c543":"fiber_12_part_22.html","n12-c544":"fiber_12_part_22.html","n12-c545":"fiber_12_part_22.html","n12-c546":"fiber_12_part_22.html","n12-c547":"fiber_12_part_22.html","n12-c548":"fiber_12_part_22.html","n12-c549":"fiber_12_part_22.html","n12-c550":"fiber_12_part_22.html","n12-c551":"fiber_12_part_23.html","n12-c552":"fiber_12_part_23.html","n12-c553":"fiber_12_part_23.html","n12-c554":"fiber_12_part_23.html","n12-c555":"fiber_12_part_23.html","n12-c556":"fiber_12_part_23.html","n12-c557":"fiber_12_part_23.html","n12-c558":"fiber_12_part_23.html","n12-c559":"fiber_12_part_23.html","n12-c560":"fiber_12_part_23.html","n12-c561":"fiber_12_part_23.html","n12-c562":"fiber_12_part_23.html","n12-c563":"fiber_12_part_23.html","n12-c564":"fiber_12_part_23.html","n12-c565":"fiber_12_part_23.html","n12-c566":"fiber_12_part_23.html","n12-c567":"fiber_12_part_23.html","n12-c568":"fiber_12_part_23.html","n12-c569":"fiber_12_part_23.html","n12-c570":"fiber_12_part_23.html","n12-c571":"fiber_12_part_23.html","n12-c572":"fiber_12_part_23.html","n12-c573":"fiber_12_part_23.html","n12-c574":"fiber_12_part_23.html","n12-c575":"fiber_12_part_23.html","n12-c576":"fiber_12_part_24.html","n12-c577":"fiber_12_part_24.html","n12-c578":"fiber_12_part_24.html","n12-c579":"fiber_12_part_24.html","n12-c580":"fiber_12_part_24.html","n12-c581":"fiber_12_part_24.html","n12-c582":"fiber_12_part_24.html","n12-c583":"fiber_12_part_24.html","n12-c584":"fiber_12_part_24.html","n12-c585":"fiber_12_part_24.html","n12-c586":"fiber_12_part_24.html","n12-c587":"fiber_12_part_24.html","n12-c588":"fiber_12_part_24.html","n12-c589":"fiber_12_part_24.html","n12-c590":"fiber_12_part_24.html","n12-c591":"fiber_12_part_24.html","n12-c592":"fiber_12_part_24.html","n12-c593":"fiber_12_part_24.html","n12-c594":"fiber_12_part_24.html","n12-c595":"fiber_12_part_24.html","n12-c596":"fiber_12_part_24.html","n12-c597":"fiber_12_part_24.html","n12-c598":"fiber_12_part_24.html","n12-c599":"fiber_12_part_24.html","n12-c600":"fiber_12_part_24.html","n12-c601":"fiber_12_part_25.html","n12-c602":"fiber_12_part_25.html","n12-c603":"fiber_12_part_25.html","n12-c604":"fiber_12_part_25.html","n12-c605":"fiber_12_part_25.html","n12-c606":"fiber_12_part_25.html","n12-c607":"fiber_12_part_25.html","n12-c608":"fiber_12_part_25.html","n12-c609":"fiber_12_part_25.html","n12-c610":"fiber_12_part_25.html","n12-c611":"fiber_12_part_25.html","n12-c612":"fiber_12_part_25.html","n12-c613":"fiber_12_part_25.html","n12-c614":"fiber_12_part_25.html","n12-c615":"fiber_12_part_25.html","n12-c616":"fiber_12_part_25.html","n12-c617":"fiber_12_part_25.html","n12-c618":"fiber_12_part_25.html","n12-c619":"fiber_12_part_25.html","n12-c620":"fiber_12_part_25.html","n12-c621":"fiber_12_part_25.html","n12-c622":"fiber_12_part_25.html","n12-c623":"fiber_12_part_25.html","n12-c624":"fiber_12_part_25.html","n12-c625":"fiber_12_part_25.html","n12-c626":"fiber_12_part_26.html","n12-c627":"fiber_12_part_26.html","n12-c628":"fiber_12_part_26.html","n12-c629":"fiber_12_part_26.html","n12-c630":"fiber_12_part_26.html","n12-c631":"fiber_12_part_26.html","n12-c632":"fiber_12_part_26.html","n12-c633":"fiber_12_part_26.html","n12-c634":"fiber_12_part_26.html","n12-c635":"fiber_12_part_26.html","n12-c636":"fiber_12_part_26.html","n12-c637":"fiber_12_part_26.html","n12-c638":"fiber_12_part_26.html","n12-c639":"fiber_12_part_26.html","n12-c640":"fiber_12_part_26.html","n12-c641":"fiber_12_part_26.html","n12-c642":"fiber_12_part_26.html","n12-c643":"fiber_12_part_26.html","n12-c644":"fiber_12_part_26.html","n12-c645":"fiber_12_part_26.html","n12-c646":"fiber_12_part_26.html","n12-c647":"fiber_12_part_26.html","n12-c648":"fiber_12_part_26.html","n12-c649":"fiber_12_part_26.html","n12-c650":"fiber_12_part_26.html","n12-c651":"fiber_12_part_27.html","n12-c652":"fiber_12_part_27.html","n12-c653":"fiber_12_part_27.html","n12-c654":"fiber_12_part_27.html","n12-c655":"fiber_12_part_27.html","n12-c656":"fiber_12_part_27.html","n12-c657":"fiber_12_part_27.html"};
+    const fiberSelect = document.getElementById('fiber-select');
+    const configSelect = document.getElementById('config-select');
+    const container = document.getElementById('config-container');
+    const startId = "n9-c14";
+    const chunkCache = new Map();
+
+    function syncConfigs() {
+      const ids = BY_FIBER[fiberSelect.value] || [];
+      configSelect.innerHTML = '';
+      ids.forEach(id => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = id;
+        configSelect.appendChild(option);
+      });
+    }
+
+    function tokenList(element) {
+      const tokens = [];
+      if (element.dataset.tile) {
+        tokens.push(element.dataset.tile);
+      }
+      if (element.dataset.tiles) {
+        tokens.push(...element.dataset.tiles.split(/\s+/).filter(Boolean));
+      }
+      return [...new Set(tokens)];
+    }
+
+    function wireComparisonHighlights(scope) {
+      const views = [...scope.querySelectorAll('.config-view')];
+      views.forEach(view => {
+        const interactive = [...view.querySelectorAll('[data-tile], [data-tiles]')];
+        function clearActive() {
+          interactive.forEach(element => element.classList.remove('is-active'));
+        }
+        function setActive(tokens) {
+          clearActive();
+          if (!tokens.length) return;
+          interactive.forEach(element => {
+            const other = tokenList(element);
+            if (tokens.some(token => other.includes(token))) {
+              element.classList.add('is-active');
+            }
+          });
+        }
+        interactive.forEach(element => {
+          const tokens = tokenList(element);
+          element.addEventListener('mouseenter', () => setActive(tokens));
+          element.addEventListener('mouseleave', clearActive);
+          element.addEventListener('focus', () => setActive(tokens));
+          element.addEventListener('blur', clearActive);
+        });
+      });
+    }
+
+    async function ensureChunkLoaded(filename) {
+      if (chunkCache.has(filename)) {
+        return chunkCache.get(filename);
+      }
+      const resp = await fetch(`data/${filename}`);
+      if (!resp.ok) {
+        throw new Error(`Could not load ${filename}`);
+      }
+      const html = await resp.text();
+      chunkCache.set(filename, html);
+      return html;
+    }
+
+    async function renderSelection(selectedId) {
+      const selectedChunk = CHUNK_BY_ID[selectedId];
+      if (!selectedChunk) {
+        container.innerHTML = "<section class='toolbar'><p class='loading'>Could not locate that configuration.</p></section>";
+        return;
+      }
+      container.innerHTML = "<section class='toolbar'><p class='loading'>Loading configuration views...</p></section>";
+      const html = await ensureChunkLoaded(selectedChunk);
+      container.innerHTML = html;
+      const views = [...container.querySelectorAll('.config-view')];
+      views.forEach(view => {
+        view.classList.toggle('hidden', view.dataset.id !== selectedId);
+      });
+      wireComparisonHighlights(container);
+    }
+
+    fiberSelect.addEventListener('change', async () => {
+      syncConfigs();
+      await renderSelection(configSelect.value);
+    });
+    configSelect.addEventListener('change', async () => {
+      await renderSelection(configSelect.value);
+    });
+
+    const startFiber = Object.keys(BY_FIBER).find(n => (BY_FIBER[n] || []).includes(startId)) || Object.keys(BY_FIBER)[0];
+    fiberSelect.value = startFiber;
+    syncConfigs();
+    configSelect.value = startId || configSelect.value;
+    renderSelection(configSelect.value);
+  </script>
+</body>
+</html>
